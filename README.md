@@ -20,15 +20,16 @@ The system follows a standard **Layered Architecture** to ensure separation of c
 graph TD
     Client[Client / Mobile App] -->|HTTP Request| API[Express API Layer]
     API -->|Validate| Controller[Controllers]
-    Controller -->|Business Logic| Service[Services (Pooling, Pricing)]
+    Controller -->|Business Logic| Service[Services]
     Service -->|Data Access| Prisma[Prisma ORM]
-    Prisma -->|Persist| DB[(PostgreSQL)]
-    
+    Prisma -->|Persist| DB[PostgreSQL]
+
     subgraph Services
-    Pooling[Pooling Service]
-    Pricing[Pricing Service]
-    Matcher[Ride Matcher]
+        Pooling[Pooling Service]
+        Pricing[Pricing Service]
+        Matcher[Ride Matcher]
     end
+
 ```
 
 **Flow:** `Client` → `Express Routes` → `Controllers` → `Services` → `Prisma ORM` → `PostgreSQL`

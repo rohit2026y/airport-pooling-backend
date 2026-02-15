@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+  title: Smart Airport Ride Pooling API
+  description: Backend system for grouping airport passengers into shared cabs.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+components:
+  schemas:
+    Point:
+      type: object
+      properties:
+        lat:
+          type: number
+          example: 12.9716
+        lng:
+          type: number
+          example: 77.5946
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+    Driver:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, BUSY]
+        currentLocation:
+          $ref: '#/components/schemas/Point'
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, CANCELLED]
+        price:
+          type: number
+        rideId:
+          type: string
+
+paths:
+  /users:
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /drivers:
+    post:
+      summary: Register a new driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                capacity:
+                  type: integer
+      responses:
+        '201':
+          description: Driver registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+    get:
+      summary: List all drivers
+      responses:
+        '200':
+          description: List of drivers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Driver'
+  /bookings:
+    post:
+      summary: Create a booking request (Triggers Pooling)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                pickup:
+                  $ref: '#/components/schemas/Point'
+                dropoff:
+                  $ref: '#/components/schemas/Point'
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bookingId:
+                    type: string
+                  status:
+                    type: string
+                  rideId:
+                    type: string
+                  price:
+                    type: number
+  /bookings/{id}:
+    get:
+      summary: Get booking details
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Booking details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+  /bookings/{id}/cancel:
+    post:
+      summary: Cancel a booking
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Booking cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string

@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Driver {
+  id              String   @id @default(uuid())
+  name            String
+  capacity        Int      @default(4)
+  status          DriverStatus @default(AVAILABLE)
+  currentLocation Json?    // { lat: number, lng: number }
+  rides           Ride[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Ride {
+  id          String     @id @default(uuid())
+  driverId    String
+  driver      Driver     @relation(fields: [driverId], references: [id])
+  status      RideStatus @default(SCHEDULED)
+  path        Json?      // Ordered list of waypoints
+  bookings    Booking[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  @@index([status])
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  rideId    String?
+  ride      Ride?         @relation(fields: [rideId], references: [id])
+  pickup    Json          // { lat: number, lng: number }
+  dropoff   Json          // { lat: number, lng: number }
+  status    BookingStatus @default(PENDING)
+  price     Decimal       @db.Decimal(10, 2)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+enum DriverStatus {
+  AVAILABLE
+  BUSY
+}
+
+enum RideStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
